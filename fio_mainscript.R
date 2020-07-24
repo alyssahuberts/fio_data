@@ -4,10 +4,13 @@
 # Script created by AJH 7/24/2020
 ################################################################
 library(tidyverse)
+library(lubridate)
+
 # set wd 
 setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
 
   # read in data 
+  #2015 "Records between June, 2015 and December, 2016 from the new record management system."
     # field contact 
     fc_15 <- read_csv("fieldcontactforpublic2015.csv",
     col_types = cols(
@@ -38,7 +41,9 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
       contact_reason = col_character()
     )) %>% 
       mutate(year = 2015)
-     
+    
+    # 2016
+    "Records between January and December, 2016"
     fc_16 <- read_csv("fieldcontactforpublic2016.csv", col_types = cols(
         fc_num = col_character(),
         contact_date = col_character(),
@@ -67,7 +72,9 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
         contact_reason = col_character()
                       ))%>% 
       mutate(year = 2016)
-             
+    
+    # 2017
+    #"Records between January and December, 2017"
     # note the source change here- but it looks like datasets are compatible
     fc_17 <- read_csv("rms_fieldcontacts_for_public_2017_202003111424.csv", col_types = 
            cols(
@@ -98,7 +105,9 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
               contact_reason = col_character()
                         ))%>% 
       mutate(year = 2017)
-                    
+    
+    #fc 18 
+    "Records between January and December, 2018"
     fc_18 <- read_csv("rms_fieldcontacts_for_public_2018_202003111433.csv", col_types= 
       cols(
         fc_num = col_character(),
@@ -129,6 +138,8 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
       ))%>% 
       mutate(year = 2018)
      
+    #2019
+    #"Records between January and September 29, 2019"
     fc_19 <- read_csv("rms_fieldcontacts_for_public_2019.csv",col_types = cols(
       fc_num = col_character(),
       contact_date = col_character(),
@@ -160,6 +171,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
       
     # mark is additional records to be merged in. it includes narrative and
     # weather but otherwise is the same
+    #"Records between September, 29 and December, 2019 from the new Mark43 RMS"
     fc_19_mark <- read_csv("mark43_fieldcontacts_for_public_20192.csv", col_types =
                  cols(
                  fc_num = col_character(),
@@ -289,11 +301,14 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                                 `frisk/search` = col_character()
                               ))
     
-    fcn <- bind_rows(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19)
-    rm(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19)
+    fcn <- bind_rows(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19, fcn_19_mark)
+    rm(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19,fcn_19_mark)
     
     # What are the other files?
-   bpd <- read_csv("boston-police-department-fio.csv")
+    # old rms 
+   old_rms <- read_csv("boston-police-department-fio.csv")
+   old_rms$date <- str_split_fixed(bpd$FIO_DATE," ", 2 )[,1]
+   # these three contain field names 
    descr <- readxl::read_excel("fiofielddescriptions.xlsx")
    mark <- readxl::read_excel("fiokeymark43-1-1.xlsx")
    new_rms <- readxl::read_excel("fiokeynewrms.xlsx")
