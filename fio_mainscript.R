@@ -39,7 +39,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
     )) %>% 
       mutate(year = 2015)
      
-    fc_16 <- read_csv("fieldcontactforpublic2015.csv", col_types = cols(
+    fc_16 <- read_csv("fieldcontactforpublic2016.csv", col_types = cols(
         fc_num = col_character(),
         contact_date = col_character(),
         contact_officer = col_character(),
@@ -271,6 +271,31 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                            otherclothing = col_character()
                          ) )
     
+    fcn_19_mark <- read_csv("mark43_fieldcontacts_name_for_public_2019.csv", col_types = 
+                              cols(
+                                fc_num = col_character(),
+                                contact_date = col_datetime(format = ""),
+                                sex = col_character(),
+                                race = col_character(),
+                                age = col_double(),
+                                build = col_character(),
+                                hair_style = col_character(),
+                                skin_tone = col_character(),
+                                ethnicity = col_character(),
+                                otherclothing = col_character(),
+                                deceased = col_double(),
+                                license_state = col_character(),
+                                license_type = col_character(),
+                                `frisk/search` = col_character()
+                              ))
+    
     fcn <- bind_rows(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19)
     rm(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19)
+    
+    # What are the other files?
+   bpd <- read_csv("boston-police-department-fio.csv")
+   descr <- readxl::read_excel("fiofielddescriptions.xlsx")
+   mark <- readxl::read_excel("fiokeymark43-1-1.xlsx")
+   new_rms <- readxl::read_excel("fiokeynewrms.xlsx")
+   
    
