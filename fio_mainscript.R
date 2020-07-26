@@ -7,6 +7,7 @@ library(tidyverse)
 library(lubridate)
 library(sf)
 library(janitor)
+library(gt)
 # set wd 
 setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
 
@@ -355,8 +356,8 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
    descr <- readxl::read_excel("fiofielddescriptions.xlsx")
    mark <- readxl::read_excel("fiokeymark43-1-1.xlsx")
    new_rms <- readxl::read_excel("fiokeynewrms.xlsx")
-   
-   
+
+
 ####################################
    # Basic summary stats
 ####################################
@@ -366,25 +367,14 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
   min(fcn$date, na.rm = TRUE)
   max(fcn$date, na.rm= TRUE)
   
+  fc %>% group_by(city) %>% tally() %>% filter(n >10& !is.na(city)) %>% arrange(desc(n)) %>% gt() %>% gtsave("plots/locations.png")
   
-   
-    # read in MA zip codes 
-   zipcodes <- st_read("zipcodes_nt/ZIPCODES_NT_POLY.shp") %>% clean_names()
-   zipcodes <- zipcodes %>% mutate(zip = as.character(postcode))
-   zipcodes <- zipcodes %>% filter(zip %in% fc$zip)
-   
-   totals_19 <- fc %>% group_by(year, zip) %>% tally() %>% 
-     filter(year== 2019)
-   
-   zipcodes_19 <- left_join(zipcodes, totals_19, by = "zip")
-   zipcodes_19$n <- ifelse(is.na(zipcodes_19$n), 0, zipcodes_19$n)
-
-     ggplot(zipcodes_19)+ geom_sf(aes(fill =n))
-   
-   fc %>% group_by(year, zip) %>% 
-     tally() %>% 
-     ggplot()+ 
-     geom_point(aes(x = year, y = n, group = zip, color = zip)) +theme_classic()
-   
-   
-   
+  #events    
+  fc %>% 
+    group_by(circumstance, year) %>% 
+    tally() %>% pivot_wider(names_from = year, values_from = n) 
+  fc %>% 
+    group_by(year) %>% 
+    tally() 
+  
+  # unique individuals
