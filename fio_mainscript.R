@@ -259,7 +259,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
       complexion = col_character(),
       ethnicity = col_character(),
       otherclothing = col_character()
-    ))
+    )) %>% mutate(year = 2015)
     fcn_16 <- read_csv("fieldcontactnameforpublic2016.csv", 
                        col_types =
                          cols(
@@ -275,7 +275,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                            ethnicity = col_character(),
                            otherclothing = col_character()
                          )
-                       )
+                       ) %>%  mutate(year = 2016)
     # note the source change here- but it looks like datasets are compatible
     fcn_17 <- read_csv("rms_fieldcontacts_name_for_public_2017_202003111442.csv", 
                        col_types= 
@@ -292,7 +292,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                            ethnicity = col_character(),
                            otherclothing = col_character()
                          )
-                       )
+                       ) %>%  mutate(year = 2017)
     fcn_18 <- read_csv("rms_fieldcontacts_name_for_public_2018_202003111443.csv",
                        col_types = cols(
                          recnum = col_double(),
@@ -306,7 +306,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                          complexion = col_character(),
                          ethnicity = col_character(),
                          otherclothing = col_character()
-                       ))
+                       )) %>% mutate(year = 2018)
     fcn_19 <- read_csv("rms_fieldcontacts_name_for_public_2019.csv",
                        col_types = 
                          cols(
@@ -321,7 +321,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                            complexion = col_character(),
                            ethnicity = col_character(),
                            otherclothing = col_character()
-                         ) )
+                         ) ) %>%  mutate(year = 2019)
     
     fcn_19_mark <- read_csv("mark43_fieldcontacts_name_for_public_2019.csv", col_types = 
                               cols(
@@ -339,7 +339,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                                 license_state = col_character(),
                                 license_type = col_character(),
                                 `frisk/search` = col_character()
-                              ))
+                              )) %>% mutate(year = 2019)
     # leaving out 2015 since data is incomplete/messy since BPD switched systems that year
     fcn <- bind_rows( fcn_16, fcn_17, fcn_18, fcn_19, fcn_19_mark)
     rm(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19,fcn_19_mark)
@@ -351,7 +351,7 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
     # What are the other files?
     # old rms 
    old_rms <- read_csv("boston-police-department-fio.csv")
-   old_rms$date <- str_split_fixed(bpd$FIO_DATE," ", 2 )[,1]
+   old_rms$date <- str_split_fixed(old_rms$FIO_DATE," ", 2 )[,1]
    # these three contain field names 
    descr <- readxl::read_excel("fiofielddescriptions.xlsx")
    mark <- readxl::read_excel("fiokeymark43-1-1.xlsx")
@@ -369,12 +369,36 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
   
   fc %>% group_by(city) %>% tally() %>% filter(n >10& !is.na(city)) %>% arrange(desc(n)) %>% gt() %>% gtsave("plots/locations.png")
   
-  #events    
-  fc %>% 
-    group_by(circumstance, year) %>% 
-    tally() %>% pivot_wider(names_from = year, values_from = n) 
-  fc %>% 
-    group_by(year) %>% 
-    tally() 
+  #events
+    # total
+    fc %>% 
+      group_by(year) %>% 
+      tally() 
+    # circumstance
+    fc %>% 
+      group_by(circumstance, year) %>% 
+      tally() %>% pivot_wider(names_from = year, values_from = n) 
+    #activities
+    fc$frisked <- ifelse(is.na(fc$frisked),0,1)
+    fc %>% group_by(frisked, year) %>% 
+      tally()
+    
+    #activities
+    fc$searchperson <- ifelse(is.na(fc$searchperson),0,1)
+    fc %>% group_by(searchperson, year) %>% 
+      tally()
   
-  # unique individuals
+  #  individuals (note that this is not unique individuals- each individual
+  #  stopped is counted as a new "individual")
+  fcn %>% group_by(year) %>% tally()
+  
+  
+  # Race and Ethnicity 
+  fcn$race <-ifelse(fcn$race == "NULL"| fcn$race == "Other"|fcn$race == "Unknown"|is.na(fcn$race), "Other/Unknown", fcn$race)
+  fcn$race <-ifelse(fcn$race == "American Indian or Alaskan Native", "Native American / Alaskan Native", fcn$race)
+   fcn %>% group_by(year, race ) %>% tally() %>% pivot_wider(names_from =year, values_from =n) 
+   
+   fcn$ethnicity <-ifelse(fcn$ethnicity == "NULL"| fcn$ethnicity == "Unknown"|is.na(fcn$ethnicity), "Other/Unknown", fcn$ethnicity)
+   fcn %>% group_by(ethnicity, year) %>% tally() %>% pivot_wider(names_from =year, values_from =n)
+   
+   
