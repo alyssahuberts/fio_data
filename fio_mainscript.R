@@ -200,11 +200,11 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                              ))%>% 
       mutate(year = 2019)
  
-    fc <- bind_rows(fc_15, fc_16, fc_17, fc_18, fc_19, fc_19_mark)
-    fc$date <- str_split_fixed(fc$contact_date, " ", n =2)[1]
-    fc$time <- str_split_fixed(fc$contact_date, " ", n =2)[2]
-    
-    
+    # leaving out 2015 because the data is messy/incomplete since they switched systems that year
+    fc <- bind_rows( fc_16, fc_17, fc_18, fc_19, fc_19_mark)
+    fc$date <- as.Date(str_split_fixed(fc$contact_date, " ", n =2)[,1])
+    fc$time <- str_split_fixed(fc$contact_date, " ", n =2)[,2]
+
     rm(fc_15,fc_16,fc_17, fc_18, fc_19, fc_19_mark)
     
     # clean up zipcode 
@@ -229,6 +229,18 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
     fc$zip[fc$zip == "02136-0000"] <-"02136"
     fc$zip[fc$zip == "02186-0000"] <-"02186"
     fc$zip[fc$zip == "02168-0000"] <-"02168"
+    
+    # clean up city 
+    fc$city[(fc$city == "BSNT"|fc$city == "BST"| fc$city == "BSTN"| fc$city == "BSNTA"|fc$city == "BSTON"|fc$city == "BTSN"|fc$city == "BOSTOB")] <- "BOSTON"
+    fc$city[(fc$city == "CHAARLESTOWN"|fc$city == "CHALRESTOWN"| fc$city == "CHARLESTOWN"| fc$city == "CHARLESTWON")] <- "CHARLESTOWN"
+    fc$city[(fc$city == "DOR"|fc$city == "DOR."|fc$city == "DORCCHESTER"|fc$city == "DORCHEST"|fc$city == "DDORCHESTER"|fc$city == "DORCHESTERR"|fc$city == "DORCHSTER")] <- "DORCHESTER"
+    fc$city[(fc$city == "E BOSTON"|fc$city == "E. BOSTON"|fc$city == "E.BOSTON"|fc$city == " EAST BOS"|fc$city == "EAST BOSTN"|fc$city == "EAST BOSTON")] <- "EAST BOSTON"
+    fc$city[(fc$city == "HP")] <- "HYDE PARK"
+    fc$city[(fc$city == "JAMACIA PLAIN"|fc$city == "JAMAIACA PLAIN"|fc$city == "JAMAICA"|fc$city == " JAMAICA PLAIN"|fc$city == "JAMAICIA"|fc$city == "JAMAICIA PLAIN"|fc$city == "JAMAIICA PLAIN"| fc$city == "JP")] <- "JAMAICA PLAIN"
+    fc$city[(fc$city == "MATTPAN")] <- "MATTAPAN"
+    fc$city[(fc$city == "ROSLINDLAE")] <- "ROSLINDALE"
+    fc$city[(fc$city == "ROBURY"|fc$city == "ROX"|fc$city == "Roxbury"|fc$city == "ROXBURY MA")] <- "ROXBURY"
+    fc$city[(fc$city == "S BOSTON"|fc$city == "S BSTN"|fc$city == "S. BOSTON"|fc$city == "S.BOSTON"| fc$city == "SBOS"| fc$city == "SO BOSTON"| fc$city == "SOUTH  BOSTON"| fc$city == "SO. BOSTON")] <- "SOUTH BOSTON"
     
     
     ####################
@@ -327,9 +339,13 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
                                 license_type = col_character(),
                                 `frisk/search` = col_character()
                               ))
-    
-    fcn <- bind_rows(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19, fcn_19_mark)
+    # leaving out 2015 since data is incomplete/messy since BPD switched systems that year
+    fcn <- bind_rows( fcn_16, fcn_17, fcn_18, fcn_19, fcn_19_mark)
     rm(fcn_15, fcn_16, fcn_17, fcn_18, fcn_19,fcn_19_mark)
+    
+    # clean date
+    fcn$date <- as.Date(str_split_fixed(fcn$contact_date, " ", n =2)[,1])
+    fcn$time <- str_split_fixed(fcn$contact_date, " ", n =2)[,2]
     
     # What are the other files?
     # old rms 
@@ -344,9 +360,26 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
 ####################################
    # Basic summary stats
 ####################################
-   # read in MA zip codes 
+  min(fc$date, na.rm = TRUE)
+  max(fc$date, na.rm= TRUE)
+  
+  min(fcn$date, na.rm = TRUE)
+  max(fcn$date, na.rm= TRUE)
+  
+  
+   
+    # read in MA zip codes 
    zipcodes <- st_read("zipcodes_nt/ZIPCODES_NT_POLY.shp") %>% clean_names()
    zipcodes <- zipcodes %>% mutate(zip = as.character(postcode))
+   zipcodes <- zipcodes %>% filter(zip %in% fc$zip)
+   
+   totals_19 <- fc %>% group_by(year, zip) %>% tally() %>% 
+     filter(year== 2019)
+   
+   zipcodes_19 <- left_join(zipcodes, totals_19, by = "zip")
+   zipcodes_19$n <- ifelse(is.na(zipcodes_19$n), 0, zipcodes_19$n)
+
+     ggplot(zipcodes_19)+ geom_sf(aes(fill =n))
    
    fc %>% group_by(year, zip) %>% 
      tally() %>% 
