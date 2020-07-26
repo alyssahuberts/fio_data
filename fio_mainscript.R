@@ -5,7 +5,8 @@
 ################################################################
 library(tidyverse)
 library(lubridate)
-
+library(sf)
+library(janitor)
 # set wd 
 setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
 
@@ -205,8 +206,34 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
     
     
     rm(fc_15,fc_16,fc_17, fc_18, fc_19, fc_19_mark)
-
+    
+    # clean up zipcode 
+    fc$zip[fc$zip == "02115-0000"] <-"02115"
+    fc$zip[fc$zip == "01810-0000"] <-"01810"
+    fc$zip[fc$zip == "02111-0000"] <-"02111"
+    fc$zip[fc$zip == "02115-0000"] <-"02115"
+    fc$zip[fc$zip == "02116-0000"] <-"02116"
+    fc$zip[fc$zip == "02118-0000"] <-"02118"
+    fc$zip[fc$zip == "02119-0000"] <-"02119"
+    fc$zip[fc$zip == "02120-0000"] <-"02120"
+    fc$zip[fc$zip == "02121-0000"] <-"02121"
+    fc$zip[fc$zip == "02122-0000"] <-"02122"
+    fc$zip[fc$zip == "02123-0000"] <-"02123"
+    fc$zip[fc$zip == "02124-0000"] <-"02124"
+    fc$zip[fc$zip == "02125-0000"] <-"02125"
+    fc$zip[fc$zip == "02126-0000"] <-"02126"
+    fc$zip[fc$zip == "02127-0000"] <-"02127"
+    fc$zip[fc$zip == "02128-0000"] <-"02128"
+    fc$zip[fc$zip == "02130-0000"] <-"02130"
+    fc$zip[fc$zip == "02135-0000"] <-"02135"
+    fc$zip[fc$zip == "02136-0000"] <-"02136"
+    fc$zip[fc$zip == "02186-0000"] <-"02186"
+    fc$zip[fc$zip == "02168-0000"] <-"02168"
+    
+    
+    ####################
     # field contact name 
+    ####################
     fcn_15 <- read_csv("fieldcontactnameforpublic2015.csv", col_types = cols(
       recnum = col_double(),
       fc_num = col_character(),
@@ -312,5 +339,19 @@ setwd("/Users/alyssahuberts/Dropbox/1_City/Research/Policing/fio_data")
    descr <- readxl::read_excel("fiofielddescriptions.xlsx")
    mark <- readxl::read_excel("fiokeymark43-1-1.xlsx")
    new_rms <- readxl::read_excel("fiokeynewrms.xlsx")
+   
+   
+####################################
+   # Basic summary stats
+####################################
+   # read in MA zip codes 
+   zipcodes <- st_read("zipcodes_nt/ZIPCODES_NT_POLY.shp") %>% clean_names()
+   zipcodes <- zipcodes %>% mutate(zip = as.character(postcode))
+   
+   fc %>% group_by(year, zip) %>% 
+     tally() %>% 
+     ggplot()+ 
+     geom_point(aes(x = year, y = n, group = zip, color = zip)) +theme_classic()
+   
    
    
